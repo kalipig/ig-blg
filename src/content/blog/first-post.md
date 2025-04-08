@@ -1,16 +1,65 @@
 ---
-title: "First post"
-description: "Lorem ipsum dolor sit amet"
-pubDate: "Jul 08 2022"
+title: "CF919D"
+description: "solution"
+pubDate: "04 08 2025"
 heroImage: "/blog-placeholder-3.jpg"
 ---
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Vitae ultricies leo integer malesuada nunc vel risus commodo viverra. Adipiscing enim eu turpis egestas pretium. Euismod elementum nisi quis eleifend quam adipiscing. In hac habitasse platea dictumst vestibulum. Sagittis purus sit amet volutpat. Netus et malesuada fames ac turpis egestas. Eget magna fermentum iaculis eu non diam phasellus vestibulum lorem. Varius sit amet mattis vulputate enim. Habitasse platea dictumst quisque sagittis. Integer quis auctor elit sed vulputate mi. Dictumst quisque sagittis purus sit amet.
+## CF919D
 
-Morbi tristique senectus et netus. Id semper risus in hendrerit gravida rutrum quisque non tellus. Habitasse platea dictumst quisque sagittis purus sit amet. Tellus molestie nunc non blandit massa. Cursus vitae congue mauris rhoncus. Accumsan tortor posuere ac ut. Fringilla urna porttitor rhoncus dolor. Elit ullamcorper dignissim cras tincidunt lobortis. In cursus turpis massa tincidunt dui ut ornare lectus. Integer feugiat scelerisque varius morbi enim nunc. Bibendum neque egestas congue quisque egestas diam. Cras ornare arcu dui vivamus arcu felis bibendum. Dignissim suspendisse in est ante in nibh mauris. Sed tempus urna et pharetra pharetra massa massa ultricies mi.
+### Problem
 
-Mollis nunc sed id semper risus in. Convallis a cras semper auctor neque. Diam sit amet nisl suscipit. Lacus viverra vitae congue eu consequat ac felis donec. Egestas integer eget aliquet nibh praesent tristique magna sit amet. Eget magna fermentum iaculis eu non diam. In vitae turpis massa sed elementum. Tristique et egestas quis ipsum suspendisse ultrices. Eget lorem dolor sed viverra ipsum. Vel turpis nunc eget lorem dolor sed viverra. Posuere ac ut consequat semper viverra nam. Laoreet suspendisse interdum consectetur libero id faucibus. Diam phasellus vestibulum lorem sed risus ultricies tristique. Rhoncus dolor purus non enim praesent elementum facilisis. Ultrices tincidunt arcu non sodales neque. Tempus egestas sed sed risus pretium quam vulputate. Viverra suspendisse potenti nullam ac tortor vitae purus faucibus ornare. Fringilla urna porttitor rhoncus dolor purus non. Amet dictum sit amet justo donec enim.
+给你一个有向图，每个点有一个小写字母权值，定义一条路径的权值是这条路径出现次数最多的字母的个数，求出这个图权值最大权值的路径的权值。
 
-Mattis ullamcorper velit sed ullamcorper morbi tincidunt. Tortor posuere ac ut consequat semper viverra. Tellus mauris a diam maecenas sed enim ut sem viverra. Venenatis urna cursus eget nunc scelerisque viverra mauris in. Arcu ac tortor dignissim convallis aenean et tortor at. Curabitur gravida arcu ac tortor dignissim convallis aenean et tortor. Egestas tellus rutrum tellus pellentesque eu. Fusce ut placerat orci nulla pellentesque dignissim enim sit amet. Ut enim blandit volutpat maecenas volutpat blandit aliquam etiam. Id donec ultrices tincidunt arcu. Id cursus metus aliquam eleifend mi.
+### Solution
 
-Tempus quam pellentesque nec nam aliquam sem. Risus at ultrices mi tempus imperdiet. Id porta nibh venenatis cras sed felis eget velit. Ipsum a arcu cursus vitae. Facilisis magna etiam tempor orci eu lobortis elementum. Tincidunt dui ut ornare lectus sit. Quisque non tellus orci ac. Blandit libero volutpat sed cras. Nec tincidunt praesent semper feugiat nibh sed pulvinar proin gravida. Egestas integer eget aliquet nibh praesent tristique magna.
+这个题很容易想到深搜，但是发现 $n\le 300000$，考虑动态规划，但是因为 $n\le 300000$，所以把我们的第二维空间卡的很死，而这道题又跟字符有关，那么很容易想到 $dp_{i,j}( 0\le j \le 25)$ 表示在第 $i$ 个位置字符为 $j$ 的答案。
+
+考虑转移，很好想。如果当前的字符与 $j$ 相同，那么自然可以加一，否则不变，那么对于一条边：
+$$
+dp_{v,j}=max(dp_{v,j},dp_{u,j}+(s[v]==j))
+$$
+答案即为最大的一个，按照拓扑排序的顺序更新即可。
+
+### Code
+
+短且易读的代码。
+
+~~~cpp
+#include<bits/stdc++.h>
+using namespace std;
+using LL=long long;
+const LL N=3e5+5;
+LL n,m,f[N][30],in[N],ans,cnt,x,y;
+vector<LL> g[N];
+string s;
+queue<LL> q;
+int main(){
+    cin>>n>>m;
+    cin>>s;
+    while(m--){
+        cin>>x>>y;
+        g[x].emplace_back(y);
+        in[y]++;
+    }
+    s=' '+s;
+    for(int i=1;i<=n;i++){
+        if(!in[i]){
+            q.push(i);
+            f[i][s[i]-'a']=1;
+        }
+    }
+    while(!q.empty()){
+        LL to=q.front();q.pop();
+        for(auto i : g[to]){
+            for(int j=0;j<26;j++) f[i][j] = max(f[i][j],f[to][j] + LL(bool(s[i]-'a'==j))),ans=max(ans,f[i][j]);
+            if(!(--in[i])){
+                q.push(i);
+            }
+        }
+        cnt++;
+    }
+    cout<<(cnt<n ? -1 : ans);
+    return 0; 
+}
+~~~
